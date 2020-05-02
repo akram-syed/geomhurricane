@@ -16,7 +16,9 @@ Imports:
    magrittr,
    readr,
    stringr,
-   tidyr
+   tidyr,
+   ggplot2,
+   geosphere
 Suggests:
     knitr,
     rmarkdown,
