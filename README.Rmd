@@ -71,7 +71,7 @@ kable(head(katrina))
 ## Examples
 **Landfall**
 
-Hurricane Katrina appeared to make [landfall on October 29, 2005 around 6 AM CDT](https://en.wikipedia.org/wiki/Timeline_of_Hurricane_Katrina#Second_and_Third_landfall). We will filter the data highlited above and plot the hurricane geom to visualize the wind speeds as it made landfall in Louisiana.
+Hurricane Katrina appeared to make [landfall on August 29, 2005 around 6 AM CDT](https://en.wikipedia.org/wiki/Timeline_of_Hurricane_Katrina#Second_and_Third_landfall). We will filter the data highlited above and plot the hurricane geom to visualize the wind speeds as it made landfall in Louisiana.
 ```{r register_api_key, echo=FALSE}
 register_google(Sys.getenv("GOOGLE_API_KEY"))
 ```
