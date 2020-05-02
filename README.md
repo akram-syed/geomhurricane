@@ -1,4 +1,8 @@
 
+[![AppVeyor build
+status](https://ci.appveyor.com/api/projects/status/github/akram-syed/geomhurricane?branch=master&svg=true)](https://ci.appveyor.com/project/akram-syed/geomhurricane)
+[![Travis build
+status](https://travis-ci.com/akram-syed/geomhurricane.svg?branch=master)](https://travis-ci.com/akram-syed/geomhurricane)
 [![lifecycle](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://www.tidyverse.org/lifecycle/#experimental)
 
 # Geom for Hurricanes
@@ -2149,7 +2153,7 @@ Katrina-2005
 
 </table>
 
-## Example
+## Examples
 
 **Landfall**
 
@@ -2176,8 +2180,9 @@ get_map("Louisiana", zoom = 6, maptype = "toner-background") %>%
 
 ![](fig/example1-1.png)<!-- -->
 
-**Hurricane Path** The path of the hurricane can be seen in the
-animation below.
+**Hurricane Path**
+
+The path of the hurricane can be seen in the animation below.
 
 ``` r
 library(gganimate)

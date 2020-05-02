@@ -1,0 +1,120 @@
+---
+output: github_document
+---
+
+```{r setup, echo=FALSE, message=FALSE}
+knitr::opts_chunk$set(collapse = TRUE,
+                      comment = "#>",
+                      fig.path = "fig/")
+
+# import libraries
+library(geomhurricane)
+library(geosphere)
+library(tidyverse)
+library(kableExtra)
+library(ggmap)
+```
+
+[![AppVeyor build status](https://ci.appveyor.com/api/projects/status/github/akram-syed/geomhurricane?branch=master&svg=true)](https://ci.appveyor.com/project/akram-syed/geomhurricane)  [![Travis build status](https://travis-ci.com/akram-syed/geomhurricane.svg?branch=master)](https://travis-ci.com/akram-syed/geomhurricane)  [![lifecycle](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://www.tidyverse.org/lifecycle/#experimental)
+
+# Geom for Hurricanes
+The purpose of this exercise is to build a new geom using `grid` and `ggplot2` packages to facilitate in visualizing hurricane winds on a map.
+
+## Hurricanes
+Hurricanes can have asymmetrical wind fields, with much higher winds on one side of a storm compared to the other. Hurricane wind radii report how far winds of a certain intensity (e.g., 34, 50, or 64 knots) extended from a hurricane’s center, with separate values given for the northeast, northwest, southeast, and southwest quadrants of the storm. The 34 knot radius in the northeast quadrant, for example, reports the furthest distance from the center of the storm of any location that experienced 34-knot winds in that quadrant.
+
+This wind radii data provide a clearer picture of the storm structure than the simpler measurements of a storm’s position and maximum winds. For example, if a storm was moving very quickly, the forward motion of the storm might have contributed significantly to wind speeds to the right of the storm’s direction of forward motion, and wind radii might be much larger for the northeast quadrant of the storm than the northwest quadrant.
+
+## Data
+The aforementioned wind radii are available for Atlantic basin tropical storms since 1988 through the [Extended Best Tract dataset](http://rammb.cira.colostate.edu/research/tropical_cyclones/tc_extended_best_track_dataset/) maintained by [Colorodo State University](https://www.colostate.edu/).
+
+### Load Data
+```{r load_data, echo=FALSE, message=FALSE}
+raw_data <- data_fetch(dir = "./inst/extdata")
+```
+One of the functions in this package allow us to import raw Extended Best Track (EBTRK) data. The example data has `r ncol(raw_data)` variables and `r format(nrow(raw_data), big.mark = ",")` rows. The first few rows of the raw data are displayed below.
+
+```{r raw_head, echo=FALSE}
+kable(head(raw_data))
+```
+
+### Tidy Data
+```{r tidy_data, echo=FALSE}
+tidy_data <- data_tidy(raw_data)
+```
+
+We also need to "tidy" the data and format it to be used with `geom_hurricane`. As such, the `data_tidy` function allows the user to do so. The first few rows of the tidy data are presented below.
+
+```{r display_tidy_data, echo=FALSE}
+kable(head(tidy_data))
+```
+
+### Select Hurricane
+```{r hurricane_select, echo=FALSE}
+katrina <- tidy_data %>% data_filter_hurricane(name = "katrina", year = "2005") %>% 
+    filter(ne > 0, se > 0, sw > 0, nw > 0) # data available for all quadrants
+
+# filter out landfall data
+katrina_lf <- katrina %>% filter(date == lubridate::as_datetime("2005-08-29 06:00:00"))
+```
+
+Finally, the `data_filter_hurricane` function allows the user to select the hurricane that needs to be plotted.
+
+> Hurricane names are recycled. Therefore, the user needs to specify the year of the hurricane.
+
+The example below shows the filtered and formatted tidy data for the 
+
+```{r katrina_data, echo=FALSE}
+kable(head(katrina))
+```
+
+## Examples
+**Landfall**
+
+Hurricane Katrina appeared to make [landfall on October 29, 2005 around 6 AM CDT](https://en.wikipedia.org/wiki/Timeline_of_Hurricane_Katrina#Second_and_Third_landfall). We will filter the data highlited above and plot the hurricane geom to visualize the wind speeds as it made landfall in Louisiana.
+```{r register_api_key, echo=FALSE}
+register_google(Sys.getenv("GOOGLE_API_KEY"))
+```
+
+```{r example1, message=FALSE}
+library(ggmap)
+get_map("Louisiana", zoom = 6, maptype = "toner-background") %>%
+  ggmap(extent = "device") +
+  geom_hurricane(data = katrina_lf,
+                 aes(x = longitude, y = latitude, 
+                     r_ne = ne, r_se = se, r_nw = nw, r_sw = sw,
+                     fill = wind_speed, color = wind_speed),
+                 alpha = 0.5) + 
+  scale_color_manual(name = "Wind speed (kts)", 
+                     values = c("red", "orange", "yellow")) + 
+  scale_fill_manual(name = "Wind speed (kts)", 
+                    values = c("red", "orange", "yellow"))
+```
+
+**Hurricane Path**
+
+The path of the hurricane can be seen in the animation below.
+
+```{r example_animate, message=FALSE}
+library(gganimate)
+library(gifski)
+library(magick)
+
+hurricane_path <- 
+    get_map("Jacksonville", zoom = 5, maptype = "hybrid") %>%
+    ggmap(extent = "device") +
+    geom_hurricane(data = katrina,
+                   aes(x = longitude, y = latitude, 
+                     r_ne = ne, r_se = se, r_nw = nw, r_sw = sw,
+                     fill = wind_speed, color = wind_speed),
+                 alpha = 0.5) + 
+  scale_color_manual(name = "Wind speed (kts)", 
+                     values = c("red", "orange", "yellow")) + 
+  scale_fill_manual(name = "Wind speed (kts)", 
+                    values = c("red", "orange", "yellow")) +
+  transition_time(date) +
+  ease_aes('linear')
+
+animate(hurricane_path, renderer = magick_renderer())
+```
+
